@@ -1,21 +1,28 @@
-    services:
-      backend:
-        build: ./backend
-        ports:
-          - "8000:8000"
-        environment:
-          # You will set these environment variables in the Render dashboard
-          - SERPER_API_KEY=${SERPER_API_KEY}
-          - HF_TOKEN=${HF_TOKEN}
-          - OPENAI_API_KEY=${OPENAI_API_KEY}
-          - ARCADE_API_KEY=${ARCADE_API_KEY}
-          - ARCADE_USER_ID=${ARCADE_USER_ID}
+# This file orchestrates the building and running of your frontend and backend services.
+services:
+  # The Python/FastAPI backend service
+  backend:
+    # Tells Docker to build an image from the './backend' directory
+    build: ./backend
+    ports:
+      # Maps port 8000 on your computer to port 8000 inside the container
+      - "8000:8000"
+    environment:
+      # These variables will be loaded from your .env file into the container
+      - SERPER_API_KEY=${SERPER_API_KEY}
+      - HF_TOKEN=${HF_TOKEN}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ARCADE_API_KEY=${ARCADE_API_KEY}
+      - ARCADE_USER_ID=${ARCADE_USER_ID}
 
-      frontend:
-        build: ./frontend
-        ports:
-          # Map the host's port 5173 to the container's Nginx port 80
-          - "5173:80"
-        depends_on:
-          - backend
-    
+  # The React frontend service
+  frontend:
+    # Tells Docker to build an image from the './frontend' directory
+    build: ./frontend
+    ports:
+      # Maps port 5173 on your computer to port 80 inside the container (where Nginx runs)
+      - "5173:5173"
+    # This ensures the backend starts up before the frontend
+    depends_on:
+      - backend
+
