@@ -1,18 +1,29 @@
-# Step 1: Use a Node.js runtime as the base image
-FROM node:18
+# Stage 1: Build the React/Vue/Svelte application
+FROM node:18 as build
 
-# Step 2: Set the working directory
+# Set the working directory
 WORKDIR /app
 
-# Step 3: Copy package files and install dependencies
+# Copy package files and install dependencies
 COPY package*.json ./
 RUN npm install
 
-# Step 4: Copy the rest of the frontend application code
+# Copy the rest of the application source code
 COPY . .
 
-# Step 5: Expose the port React runs on
-EXPOSE 5173
+# Build the application for production
+# This creates a 'dist' or 'build' folder with static files
+RUN npm run build
 
-# Step 6: The command to start the app
-CMD ["npm", "run", "dev"]
+# Stage 2: Serve the static files with a lightweight Nginx server
+FROM nginx:stable-alpine
+
+# Copy the build output from the 'build' stage
+# Make sure the source path (/app/dist) matches your build output directory
+COPY --from=build /app/dist /usr/share/nginx/html
+
+# Expose port 80 for the Nginx server
+EXPOSE 80
+
+# The default Nginx command will start the server automatically
+CMD ["nginx", "-g", "daemon off;"]
